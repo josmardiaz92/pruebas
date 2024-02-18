@@ -2,14 +2,34 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/Bootstrap/bootstrap.min.css">
     <title>Lista</title>
 </head>
 <body>
-    <h1>Listado de productos en el carrito: </h1>
-        <ul id="lista">
-        </ul>
-        <button id="agregar">Agregar al carrito</button>
+    <div class="container">
+        <div id="encabezado" class="row d-flex justify-content-center mt-4">
+            <did id="hijo-encabezado"  class="col-6 text-center">
+                <div id="texto-encabezado" class="fs-2 fw-bold ">
+                    Listado de Compras
+                </div>
+            </did>
+        </div>
+        <div id="cont-lista-productos" class="row d-flex justify-content-center mt-4">
+            <div class="fs-2 fw-bold text-center">
+                Productos
+            </div>
+            <div id="caja-productos" class="text-center text-secondary mt-4">
+                Aún no hay Productos.
+            </div>
+        </div>
+        <div class="row d-flex justify-content-center mt-4">
+            <div class="col-lg-2 col-sm-12 d-flex justify-content-center">
+                <button id="agregar" class="btn btn-outline-success">Agregar al carrito</button>
+            </div>
+        </div>
+    </div>
 </body>
 <script src="../js/agregar.js"></script>
 </html>

@@ -1,13 +1,28 @@
-let nombre='';
-let lista=document.getElementById('lista');
-
+const contenedorLista=document.getElementById('caja-productos');
 const btnAgregar=document.getElementById('agregar');
+
 btnAgregar.addEventListener('click',()=>{
+    let nombre='';
+    let lista=document.getElementById('lista',null);
+    if(!lista){
+        lista=document.createElement('ul');
+        lista.id="lista";
+    }else{
+        lista=lista;
+    }
+    
+   //obtenemos los valores de los inputs
+
     do{
         nombre=prompt('indique el nombre del producto: ');
 
     }while(nombre==='')
     if (nombre !== '') {
+        contenedorLista.classList.remove('text-center','text-secondary');
+        contenedorLista.classList.add('col-lg-6','col-sm-12')
+        contenedorLista.textContent = '';
+        contenedorLista.appendChild(lista);
+
         let nuevoProducto = document.createElement("li");
         nuevoProducto.classList.add("producto");
 
@@ -26,11 +41,6 @@ btnAgregar.addEventListener('click',()=>{
         console.log(nombre)
     }
 });
-
-function contarProductos(){
-    let productos=document.querySelectorAll('.producto');
-    return productos;
-};
 
 function eliminarProducto(e) {
     // Eliminar el elemento "li" que contiene el botón
