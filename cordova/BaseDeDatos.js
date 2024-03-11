@@ -32,7 +32,27 @@ function CrearAlmacen(evento){
 }
 
 function AlmacenarContacto(){
-    var N = document.querySelector("#nombre").value.toLowerCase();
+    obtenerIdMasAlto().then(idMasAlto => {
+        var N = document.querySelector("#nombre").value.toLowerCase();
+        var I = idMasAlto+1;
+        I=String(I);
+        var E = document.querySelector("#edad").value;
+
+        var transaccion = bd.transaction(["Contactos"], "readwrite");
+        var almacen = transaccion.objectStore("Contactos");
+        transaccion.addEventListener("complete", Mostrar)
+
+        almacen.add({
+            id: I,
+            nombre: N,
+            edad: E
+        });
+
+        document.querySelector("#nombre").value = "";
+        document.querySelector("#id").value = "";
+        document.querySelector("#edad").value = "";
+    });
+    /* var N = document.querySelector("#nombre").value.toLowerCase();
     var I = document.querySelector("#id").value;
     var E = document.querySelector("#edad").value;
 
@@ -48,7 +68,7 @@ function AlmacenarContacto(){
 
     document.querySelector("#nombre").value = "";
     document.querySelector("#id").value = "";
-    document.querySelector("#edad").value = "";
+    document.querySelector("#edad").value = ""; */
 }
 
 function Mostrar(){
@@ -58,11 +78,23 @@ function Mostrar(){
     var almacen = transaccion.objectStore("Contactos");
 
     var puntero = almacen.openCursor();
-    puntero.addEventListener("success", MostrarContactos);
+    obtenerContactos().then(contactos => {
+        contactos.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        MostrarContactos(contactos);
+    });
 }
 
 function MostrarContactos(evento){
-    var puntero = evento.target.result;
+    evento.forEach(puntero => {
+        cajaContactos.innerHTML += "<div>" +
+                                        puntero.nombre + " / " +
+                                        puntero.id + " / " +
+                                        puntero.edad +
+                                        "<input type='button' class='btn-editar' value='Editar' onclick='seleccionarContacto(\"" + puntero.id + "\")'>" +
+                                        "<input type='button' class='btn-borrar' value='Borrar' onclick='eliminarContacto(\"" + puntero.id + "\")'>" +
+                                "</div>";
+    });
+    /* var puntero = evento.target.result;
     if(puntero){
         cajaContactos.innerHTML += "<div>" +
                                         puntero.value.nombre + " / " +
@@ -72,7 +104,7 @@ function MostrarContactos(evento){
                                         "<input type='button' class='btn-borrar' value='Borrar' onclick='eliminarContacto(\"" + puntero.value.id + "\")'>" +
                                 "</div>";
         puntero.continue();
-    }
+    } */
 }
 function seleccionarContacto(clave){
     var padreBoton = document.querySelector(".padre-boton");
@@ -125,6 +157,34 @@ function eliminarContacto(key){
     transaccion.addEventListener("complete", Mostrar);
 
     var solicitud = almacen.delete(key);
+}
+
+async function obtenerContactos() {
+    return new Promise((resolve, reject) => {
+        const transaccion = bd.transaction("Contactos");
+        const almacen = transaccion.objectStore("Contactos");
+        const puntero = almacen.openCursor();
+    
+        const contactos = [];
+    
+        puntero.addEventListener("success", () => {
+            const punteroActual = puntero.result;
+            if (punteroActual) {
+                contactos.push(punteroActual.value);
+                punteroActual.continue();
+            } else {
+                resolve(contactos);
+            }
+        });
+    });
+}
+
+async function obtenerIdMasAlto() {
+    const contactos = await obtenerContactos();
+    const idMasAlto = contactos.reduce((maxId, contacto) => {
+        return Math.max(maxId, contacto.id);
+    }, 0);
+    return idMasAlto;
 }
 
 
