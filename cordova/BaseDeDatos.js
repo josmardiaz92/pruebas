@@ -1,5 +1,6 @@
 var bd;
 var cajaContactos;
+var ultimaBusqueda='';
 
 function IniciarBaseDatos(){
     var busqueda = document.querySelector("#formulario-busqueda");
@@ -86,13 +87,14 @@ function Mostrar(){
 
 function MostrarContactos(evento){
     evento.forEach(puntero => {
-        cajaContactos.innerHTML += "<div>" +
-                                        puntero.nombre + " / " +
-                                        puntero.id + " / " +
-                                        puntero.edad +
-                                        "<input type='button' class='btn-editar' value='Editar' onclick='seleccionarContacto(\"" + puntero.id + "\")'>" +
-                                        "<input type='button' class='btn-borrar' value='Borrar' onclick='eliminarContacto(\"" + puntero.id + "\")'>" +
-                                "</div>";
+        cajaContactos.innerHTML += `<div class='col-6 d-flex justify-content-start'>
+                                        ${puntero.nombre} / 
+                                        ${puntero.id} / 
+                                        ${puntero.edad}
+                                    
+                                        <input type='button' class='btn-editar' value='Editar' onclick='seleccionarContacto("${puntero.id}")'>
+                                        <input type='button' class='btn-borrar' value='Borrar' onclick='eliminarContacto("${puntero.id}")'>
+                                    </div>`;
     });
     /* var puntero = evento.target.result;
     if(puntero){
@@ -107,6 +109,7 @@ function MostrarContactos(evento){
     } */
 }
 function seleccionarContacto(clave){
+    console.log(clave)
     var padreBoton = document.querySelector(".padre-boton");
     padreBoton.innerHTML = "<input type='button' class='btn-actualizar' value='Actualizar' onclick='actualizarContacto()'>";
 
@@ -125,12 +128,22 @@ function buscarContacto(evento){
     evento.preventDefault();
     document.querySelector(".resultado-busqueda").innerHTML = "";
     var buscar = document.querySelector("#buscar-nombre").value.toLowerCase();
-
+    if(buscar==''){
+        buscar=ultimaBusqueda;
+    }else{
+        ultimaBusqueda=buscar;
+    }
+    const estaEnComillas = /^"/.test(buscar) && /"$/.test(buscar);
     var transaccion = bd.transaction(["Contactos"]);
     var almacen = transaccion.objectStore("Contactos");
 
     var indice = almacen.index("BuscarNombre");
-    var rango = IDBKeyRange.only(buscar);
+    if(estaEnComillas){
+        buscar=buscar.slice(1, -1);
+        var rango=IDBKeyRange.only(buscar);
+    }else{
+        var rango = IDBKeyRange.bound(buscar, buscar + "\uffff");
+    }
     var puntero = indice.openCursor(rango);
 
     puntero.addEventListener("success", mostrarBusqueda);
@@ -145,6 +158,8 @@ function mostrarBusqueda(evento){
                                         puntero.value.nombre + " / " +
                                         puntero.value.id + " / " +
                                         puntero.value.edad +
+                                        "<input type='button' class='btn-editar' value='Editar' onclick='seleccionarContacto(\"" + puntero.value.id + "\")'>" +
+                                        "<input type='button' class='btn-borrar' value='Borrar' onclick='eliminarContactoBuscado(\"" + puntero.value.id + "\")'>" +
                                         "</div>";
         puntero.continue();
     }
@@ -156,6 +171,15 @@ function eliminarContacto(key){
     var almacen = transaccion.objectStore("Contactos");
     transaccion.addEventListener("complete", Mostrar);
 
+    var solicitud = almacen.delete(key);
+}
+
+function eliminarContactoBuscado(key){
+    var transaccion = bd.transaction(["Contactos"], "readwrite");
+    var almacen = transaccion.objectStore("Contactos");
+    transaccion.addEventListener("complete", buscarContacto);
+    transaccion.addEventListener('complete',Mostrar)
+    
     var solicitud = almacen.delete(key);
 }
 
